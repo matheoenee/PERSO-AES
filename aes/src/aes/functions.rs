@@ -1,7 +1,7 @@
 use gf256::gf::gf256;
 use crate::aes::utils::*;
 
-fn get_nr(key_len: usize) -> usize {
+pub fn get_nr(key_len: usize) -> usize {
     match key_len {
         16 => 10,
         24 => 12,
@@ -10,9 +10,8 @@ fn get_nr(key_len: usize) -> usize {
     }
 }
 
-pub fn key_expansion(key: &[u8]) -> Vec<u8> {
+pub fn key_expansion(key: &[u8], nr: usize) -> Vec<u8> {
     let key_len = key.len();
-    let nr = get_nr(key_len);
     let mut expanded_key = vec![0u8; 4*(nr+1)*4];
 
     expanded_key[..key_len].copy_from_slice(&key);
@@ -102,5 +101,11 @@ pub fn inv_mix_columns(state: &mut [u8; 16]) {
         state[col + 4] = ((a[0] * gf256::from(0x09)) + (a[1] * gf256::from(0x0e)) + (a[2] * gf256::from(0x0b)) + (a[3] * gf256::from(0x0d))).into();
         state[col + 8] = ((a[0] * gf256::from(0x0d)) + (a[1] * gf256::from(0x09)) + (a[2] * gf256::from(0x0e) + (a[3] * gf256::from(0x0b)))).into();
         state[col + 12] = ((a[0] * gf256::from(0x0b)) + (a[1] * gf256::from(0x0d)) + (a[2] * gf256::from(0x09)) + (a[3] * gf256::from(0x0e))).into();
+    }
+}
+
+pub fn add_round_key(state: &mut [u8; 16], round_key: &[u8]){
+    for i in 0..16 {
+        state[i] ^= round_key[i];
     }
 }
